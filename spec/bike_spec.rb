@@ -19,4 +19,8 @@ describe Bike do
 		expect(topsy).not_to be_broken
 	end
 
+	it "should know if a bike is working" do
+		expect(topsy).to be_working
+	end
+
 end

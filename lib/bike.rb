@@ -8,6 +8,10 @@ class Bike
 		@broken
 	end
 
+	def working?
+		!broken?
+	end
+
 	def break!
 		@broken = true
 		self

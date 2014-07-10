@@ -1,29 +1,47 @@
-require 'docking_station'
-require 'bike_container'
+require './lib/bike_container'
 
-describe DockingStation do
+shared_examples 'a bike container' do
 
-	let (:bike) { double :bike }
-	let (:old_street) { DockingStation.new }
-	let (:moorgate) {DockingStation.new(:capacity => 30)}
-	let (:moorgate) { DockingStation.new(:capacity => 123) }
+	let (:container) {described_class.new(capacity:20)}
 
-	it 'has no bikes when created' do
-		expect(old_street.bikes).to eq []
-	end
-	
-	it 'should allow setting capacity on initialising each docking_station' do
-		expect(moorgate.capacity).to eq(123)
+	let(:topsy) { double :bike, fix!: :bike, broken?: false}
+	let(:turvy) { double :bike, break!: :bike, broken?: true}
+
+	def fill_station(station)
+		station.capacity.times { station.dock(topsy) }
 	end
 
-	it 'should know if its capacity is not using the DEFAULT_CAPACITY' do
-		BikeContainer::DEFAULT_CAPACITY.times {moorgate.dock(Bike.new)}
-		expect(moorgate.full?).to be false  
+	it 'should accept a bike' do
+		expect(container.bike_count).to eq(0)
+		container.dock(topsy)
+		expect(container.bike_count).to eq(1)
 	end
 
-	it 'should allow setting capacity on initialising each docking_station' do
-		expect(moorgate.capacity).to eq(123)
-		moorgate.capacity.times {moorgate.dock(Bike.new)}
+	it 'should release a bike' do
+		container.dock(topsy)
+		container.release(topsy)
+		expect(container.bike_count).to eq(0)
+	end
+
+	it 'should know when it is full' do
+		expect(container).not_to be_full
+		fill_station(container)
+		expect(container).to be_full
+	end
+
+	it 'should not accept a bike if at capacity' do
+		fill_station(container)
+		expect(lambda {container.dock(topsy)}).to raise_error(RuntimeError)
+	end
+
+	it 'should provide the list of avaliable bikes' do
+		container.dock(topsy)
+		container.dock(turvy)
+		expect(container.available_bikes).to eq([topsy])
+	end
+
+	it 'should not release a bike if there are no bikes to release' do
+		expect{container.release(topsy)}.to raise_error(RuntimeError)
 	end
 
 end
